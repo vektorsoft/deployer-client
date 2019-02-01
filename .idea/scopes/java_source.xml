@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="java_source" pattern="src:*..*||src:com.vektorsoft.xapps.deployer.client..*||src:com.vektorsoft.xapps.deployer.client.http..*||src:com.vektorsoft.xapps.deployer.client.xml..*||test:*..*||src:*" />
+</component>

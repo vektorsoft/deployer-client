@@ -1,0 +1,7 @@
+<component name="CopyrightManager">
+  <settings default="MPL_deployer_client">
+    <module2copyright>
+      <element module="java_source" copyright="MPL_deployer_client" />
+    </module2copyright>
+  </settings>
+</component>
