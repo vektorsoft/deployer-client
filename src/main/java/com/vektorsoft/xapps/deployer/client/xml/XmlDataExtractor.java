@@ -10,6 +10,7 @@ package com.vektorsoft.xapps.deployer.client.xml;
 
 import com.vektorsoft.xapps.deployer.client.DeployerException;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
@@ -45,6 +46,22 @@ public class XmlDataExtractor {
 			throw new DeployerException((ex));
 		}
 
+	}
+
+	public String extractApplicationId(File dataFile) throws DeployerException {
+		try {
+			Document document =documentBuilderFactory.newDocumentBuilder().parse(dataFile);
+			Element element = (Element) xpath.evaluate("project/application", document, XPathConstants.NODE);
+			String appId = element.getAttribute("application-id");
+			if(appId != null) {
+				return appId;
+			} else {
+				throw new DeployerException("Could not find application ID");
+			}
+
+		} catch (ParserConfigurationException | SAXException | IOException |  XPathExpressionException ex) {
+			throw new DeployerException((ex));
+		}
 	}
 
 	private String convertNodeToString(Node node) throws TransformerException {

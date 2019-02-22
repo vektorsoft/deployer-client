@@ -13,4 +13,12 @@ public class DeployerException extends Exception {
 	public DeployerException(Throwable th) {
 		super(th);
 	}
+
+	public DeployerException(String msg) {
+		super(msg);
+	}
+
+	public DeployerException(String msg, Throwable cause) {
+		super(msg, cause);
+	}
 }

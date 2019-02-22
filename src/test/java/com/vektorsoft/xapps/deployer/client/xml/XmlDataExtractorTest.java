@@ -36,4 +36,13 @@ public class XmlDataExtractorTest {
 		assertNotNull(out);
 		assertTrue(out.contains("<application"));
 	}
+
+	@Test
+	public void testAppIdExtraction() throws Exception {
+		XmlDataExtractor extractor = new XmlDataExtractor();
+		String out = extractor.extractApplicationId(configFile);
+
+		assertNotNull(out);
+		assertEquals("1234-4566-abcd-4322", out);
+	}
 }

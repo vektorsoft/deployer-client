@@ -9,6 +9,7 @@
 package com.vektorsoft.xapps.deployer.client;
 
 import com.vektorsoft.xapps.deployer.client.http.SimpleHttpClient;
+import com.vektorsoft.xapps.deployer.client.pack.DeploymentPackager;
 import com.vektorsoft.xapps.deployer.client.xml.XmlDataExtractor;
 
 import java.io.File;
@@ -20,7 +21,11 @@ public class DeployerClient {
 		String appXml = extractor.extractApplicationData(configFile);
 
 		SimpleHttpClient client = new SimpleHttpClient(serverUrl, applicationId);
-		client.uploadConfig(appXml);
+		String configResponse = client.uploadConfig(appXml);
+		if(configResponse != null) {
+			DeploymentPackager packager = new DeploymentPackager(extractor.extractApplicationId(configFile), configFile.getParentFile());
+			packager.pack(configResponse);
+		}
 	}
 
 
