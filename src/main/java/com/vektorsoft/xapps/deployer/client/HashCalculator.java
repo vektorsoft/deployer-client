@@ -8,11 +8,11 @@
 
 package com.vektorsoft.xapps.deployer.client;
 
-import com.vektorsoft.xapps.deployer.client.DeployerException;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -46,6 +46,23 @@ public final class HashCalculator {
 			throw new DeployerException(ex);
 		}
 
+	}
+
+	/**
+	 * Creates path to file based on it's hash and parent directory.
+	 *
+	 * @param origin parent directory
+	 * @param hash file hash
+	 * @return file path
+	 */
+	public static Path createHashPath(String origin, String hash) {
+		String[] parts = new String[]{
+				hash.substring(0, 2),
+				hash.substring(2, 4),
+				hash.substring(4, 6),
+				hash
+		};
+		return Path.of(origin, parts);
 	}
 
 	private static String bytesToHex(byte[] data) {
