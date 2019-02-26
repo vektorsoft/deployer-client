@@ -26,6 +26,7 @@ public class DependencyProcessor implements ConfigElementProcessor {
 
 	private final File contentDir;
 	private final File sourceDir;
+	private final MavenDependencyProcessor mavenProcessor;
 
 	/**
 	 * Creates new instance of this processor.
@@ -36,23 +37,24 @@ public class DependencyProcessor implements ConfigElementProcessor {
 	public DependencyProcessor(File targetDir, File sourceDir) {
 		this.contentDir = targetDir;
 		this.sourceDir = sourceDir;
+		this.mavenProcessor = new MavenDependencyProcessor(contentDir);
 	}
 
 	@Override
 	public void process(Element configElement) throws DeployerException {
 		String path = configElement.getAttribute("path");
-		if(path != null) {
+		if(path != null && !path.isEmpty()) {
 			var processor = new LocalResourceProcessor(contentDir, sourceDir);
 			processor.process(configElement);
 		} else {
-
+			handleManagedDependency(configElement);
 		}
 	}
 
-	private void handleManagedDependency(Element configElement) {
+	private void handleManagedDependency(Element configElement) throws DeployerException {
 		String type = configElement.getAttribute("xsi:type");
 		if("mavenDependency".equals(type)) {
-
+			mavenProcessor.process(configElement);
 		}
 	}
 }

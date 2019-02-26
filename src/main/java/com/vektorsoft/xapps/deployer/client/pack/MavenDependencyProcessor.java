@@ -9,6 +9,9 @@
 package com.vektorsoft.xapps.deployer.client.pack;
 
 import com.vektorsoft.xapps.deployer.client.DeployerException;
+import com.vektorsoft.xapps.deployer.client.HashCalculator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 import java.io.File;
@@ -19,9 +22,22 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * Processor for Maven dependencies. Uses Maven coordinates of dependency to generate appropriate deployment package.
+ * It is assumed that dependnecy is present in local Maven repository.
+ *
+ * By default, this processor assumes that local Maven repository is located at {@code {user.home.dir}/.m2/repository}. This can be overriden
+ * by specifying system property {@code local.maven.repo}, whose value is absolute path to local repository.
+ */
 public class MavenDependencyProcessor implements ConfigElementProcessor {
 
-	public static final String MAVEN_REPO_PROPERTY = "local.maven.repo";
+	private static final Logger LOGGER = LoggerFactory.getLogger(MavenDependencyProcessor.class);
+
+	private static final String MAVEN_REPO_PROPERTY = "local.maven.repo";
+	private static final String MAVEN_GROUP_ID = "groupId";
+	private static final String MAVEN_ARTIFACT_ID = "artifactId";
+	private static final String MAVEN_VERSION = "version";
+	private static final String MAVEN_FILE_NAME = "fileName";
 
 	private static final String MAVEN_LOCAL_REPO;
 
@@ -36,19 +52,18 @@ public class MavenDependencyProcessor implements ConfigElementProcessor {
 	}
 
 	private final File target;
-	private final File mavenRepo;
 
 	public MavenDependencyProcessor(File target) {
 		this.target = target;
-		this.mavenRepo = new File(MAVEN_LOCAL_REPO);
 	}
 
 	@Override
 	public void process(Element configElement) throws DeployerException {
-		String groupId = configElement.getAttribute("groupId");
-		String artifactId = configElement.getAttribute("artifactId");
-		String version = configElement.getAttribute("version");
-		String fileName = configElement.getAttribute("fileName");
+		String groupId = configElement.getAttribute(MAVEN_GROUP_ID);
+		String artifactId = configElement.getAttribute(MAVEN_ARTIFACT_ID);
+		String version = configElement.getAttribute(MAVEN_VERSION);
+		String fileName = configElement.getAttribute(MAVEN_FILE_NAME);
+		LOGGER.debug("Processing maven dependency: {}:{}:{}:{}", groupId, artifactId, version, fileName);
 
 		File originFile = getDependencyFile(groupId, artifactId, version, fileName);
 		String hash = HashCalculator.fileHash(originFile);
@@ -57,11 +72,13 @@ public class MavenDependencyProcessor implements ConfigElementProcessor {
 				hash.substring(2, 4),
 				hash.substring(4, 6)
 		};
+		LOGGER.debug("Found maven dependnecy hash: {}", hash);
 
 		Path targetPath = Path.of(target.getAbsolutePath(), parts[0], parts[1], parts[2], hash);
 		targetPath.toFile().mkdirs();
 		try {
 			Files.copy(originFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+			LOGGER.debug("Copied dependency to file {}", targetPath.toString());
 		} catch(IOException ex) {
 			throw new DeployerException(ex);
 		}

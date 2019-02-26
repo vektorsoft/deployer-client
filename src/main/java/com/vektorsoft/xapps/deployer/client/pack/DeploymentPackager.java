@@ -9,6 +9,8 @@
 package com.vektorsoft.xapps.deployer.client.pack;
 
 import com.vektorsoft.xapps.deployer.client.DeployerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -17,15 +19,18 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.zeroturnaround.zip.ZipUtil;
 
+
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 
 /**
  * This class is responsible for packaging deployment content into zip archive to be uploaded
- * to server.
+ * to server. Created archive has predefined structure, so it can be processed on server.
  */
 public class DeploymentPackager {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(DeploymentPackager.class);
 
 	private static final String DEFAULT_CONFIG_FILE_NAME = "deployer-config.xml";
 
@@ -47,12 +52,21 @@ public class DeploymentPackager {
 		contentDir.mkdirs();
 	}
 
+	/**
+	 * Create deployment package based on specified configuration.
+	 * @param config configuration
+	 * @return create deployment archive file
+	 * @throws DeployerException if an error occurs
+	 */
 	public File pack(String config) throws DeployerException {
+		LOGGER.info("Started packaging deployment package");
 		writeConfigFile(deploymentDir, config);
+		LOGGER.info("Wrote configuration file to {}", deploymentDir.getAbsolutePath());
 		writeContent(config);
 
 		File archiveFile = new File(deploymentDir.getParent(), deploymentDir.getName() + ".zip");
 		compressDeploymentDirectory(archiveFile);
+		LOGGER.info("Deployment package created at {}", archiveFile.getAbsolutePath());
 		return archiveFile;
 	}
 

@@ -6,7 +6,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-package com.vektorsoft.xapps.deployer.client.pack;
+package com.vektorsoft.xapps.deployer.client;
 
 import com.vektorsoft.xapps.deployer.client.DeployerException;
 
@@ -45,9 +45,6 @@ public final class HashCalculator {
 		} catch(NoSuchAlgorithmException ex) {
 			throw new DeployerException(ex);
 		}
-
-
-
 
 	}
 

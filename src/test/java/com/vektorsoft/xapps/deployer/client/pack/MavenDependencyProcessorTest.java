@@ -8,6 +8,7 @@
 
 package com.vektorsoft.xapps.deployer.client.pack;
 
+import com.vektorsoft.xapps.deployer.client.HashCalculator;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Element;
