@@ -23,6 +23,9 @@ import org.zeroturnaround.zip.ZipUtil;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 
 /**
  * This class is responsible for packaging deployment content into zip archive to be uploaded
@@ -67,6 +70,7 @@ public class DeploymentPackager {
 		File archiveFile = new File(deploymentDir.getParent(), deploymentDir.getName() + ".zip");
 		compressDeploymentDirectory(archiveFile);
 		LOGGER.info("Deployment package created at {}", archiveFile.getAbsolutePath());
+		deleteTemporaryDirectory();
 		return archiveFile;
 	}
 
@@ -76,10 +80,10 @@ public class DeploymentPackager {
 
 
 
-	private void writeConfigFile(File deployDir, String contnet) throws  DeployerException {
+	private void writeConfigFile(File deployDir, String content) throws  DeployerException {
 
 		try (PrintWriter writer = new PrintWriter(new FileWriter(new File(deployDir, DEFAULT_CONFIG_FILE_NAME)))) {
-			writer.print(contnet);
+			writer.print(content);
 		} catch(IOException ex) {
 			throw new DeployerException("Failed to create configuration file", ex);
 		}
@@ -111,5 +115,19 @@ public class DeploymentPackager {
 				processor.process(element);
 			}
 		}
+	}
+
+	private void deleteTemporaryDirectory() {
+		Path pathToDelete = deploymentDir.toPath();
+		try {
+			Files.walk(pathToDelete)
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
+			LOGGER.info("Successfully deleted temporary deployment directory");
+		} catch(IOException ex) {
+			LOGGER.error("Failed to delete temporary deployment directory", ex);
+		}
+
 	}
 }

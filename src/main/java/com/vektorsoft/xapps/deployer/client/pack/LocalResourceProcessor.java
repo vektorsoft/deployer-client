@@ -9,7 +9,8 @@
 package com.vektorsoft.xapps.deployer.client.pack;
 
 import com.vektorsoft.xapps.deployer.client.DeployerException;
-import com.vektorsoft.xapps.deployer.client.HashCalculator;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -20,12 +21,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+
 /**
  * Processor for local deployment elements, such as local dependencies or resources.
  */
 public class LocalResourceProcessor implements ConfigElementProcessor {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LocalResourceProcessor.class);
+	private static final DigestUtils DIGEST = new DigestUtils(MessageDigestAlgorithms.SHA_1);
+
 
 	private final File contentDir;
 	private final File sourceDir;
@@ -43,18 +47,19 @@ public class LocalResourceProcessor implements ConfigElementProcessor {
 		if(localPath == null) {
 			throw  new DeployerException("Missing 'path' attribute");
 		}
-		File source = new File(sourceDir, localPath);
-		String hash = HashCalculator.fileHash(source);
-		String[] parts = new String[]{
-				hash.substring(0, 2),
-				hash.substring(2, 4),
-				hash.substring(4, 6)
-		};
-		LOGGER.debug("Calculated file hash as {}", hash);
 
-		Path targetPath = Path.of(contentDir.getAbsolutePath(), parts[0], parts[1], parts[2], hash);
-		targetPath.toFile().mkdirs();
 		try {
+			File source = new File(sourceDir, localPath);
+			String hash = DIGEST.digestAsHex(source);
+			String[] parts = new String[]{
+					hash.substring(0, 2),
+					hash.substring(2, 4),
+					hash.substring(4, 6)
+			};
+			LOGGER.debug("Calculated file hash as {}", hash);
+
+			Path targetPath = Path.of(contentDir.getAbsolutePath(), parts[0], parts[1], parts[2], hash);
+			targetPath.toFile().mkdirs();
 			Files.copy(source.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 			LOGGER.debug("Copied local resource file to {}", targetPath.toString());
 		} catch(IOException ex) {

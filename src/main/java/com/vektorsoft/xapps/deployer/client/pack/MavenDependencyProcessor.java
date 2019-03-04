@@ -9,7 +9,8 @@
 package com.vektorsoft.xapps.deployer.client.pack;
 
 import com.vektorsoft.xapps.deployer.client.DeployerException;
-import com.vektorsoft.xapps.deployer.client.HashCalculator;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -32,6 +33,7 @@ import java.util.Arrays;
 public class MavenDependencyProcessor implements ConfigElementProcessor {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MavenDependencyProcessor.class);
+	private static final DigestUtils DIGEST = new DigestUtils(MessageDigestAlgorithms.SHA_1);
 
 	private static final String MAVEN_REPO_PROPERTY = "local.maven.repo";
 	private static final String MAVEN_GROUP_ID = "groupId";
@@ -65,18 +67,19 @@ public class MavenDependencyProcessor implements ConfigElementProcessor {
 		String fileName = configElement.getAttribute(MAVEN_FILE_NAME);
 		LOGGER.debug("Processing maven dependency: {}:{}:{}:{}", groupId, artifactId, version, fileName);
 
-		File originFile = getDependencyFile(groupId, artifactId, version, fileName);
-		String hash = HashCalculator.fileHash(originFile);
-		String[] parts = new String[]{
-				hash.substring(0, 2),
-				hash.substring(2, 4),
-				hash.substring(4, 6)
-		};
-		LOGGER.debug("Found maven dependnecy hash: {}", hash);
 
-		Path targetPath = Path.of(target.getAbsolutePath(), parts[0], parts[1], parts[2], hash);
-		targetPath.toFile().mkdirs();
 		try {
+			File originFile = getDependencyFile(groupId, artifactId, version, fileName);
+			String hash = DIGEST.digestAsHex(originFile);
+			String[] parts = new String[]{
+					hash.substring(0, 2),
+					hash.substring(2, 4),
+					hash.substring(4, 6)
+			};
+			LOGGER.debug("Found maven dependnecy hash: {}", hash);
+
+			Path targetPath = Path.of(target.getAbsolutePath(), parts[0], parts[1], parts[2], hash);
+			targetPath.toFile().mkdirs();
 			Files.copy(originFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 			LOGGER.debug("Copied dependency to file {}", targetPath.toString());
 		} catch(IOException ex) {

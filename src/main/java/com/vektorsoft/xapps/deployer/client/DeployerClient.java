@@ -11,13 +11,17 @@ package com.vektorsoft.xapps.deployer.client;
 import com.vektorsoft.xapps.deployer.client.http.SimpleHttpClient;
 import com.vektorsoft.xapps.deployer.client.pack.DeploymentPackager;
 import com.vektorsoft.xapps.deployer.client.xml.XmlDataExtractor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.nio.file.Files;
 
 public class DeployerClient {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(DeployerClient.class);
+
 	public void deploy(File configFile, String serverUrl) throws DeployerException {
+		LOGGER.info("Started application deployment");
 		XmlDataExtractor extractor = new XmlDataExtractor();
 		String appXml = extractor.extractApplicationData(configFile);
 		String applicationId = extractor.extractApplicationId(configFile);
@@ -25,8 +29,12 @@ public class DeployerClient {
 		SimpleHttpClient client = new SimpleHttpClient(serverUrl, applicationId);
 		String configResponse = client.uploadConfig(appXml);
 		if(configResponse != null) {
+			LOGGER.info("Configuration response received, starting packaging deployment archive");
 			DeploymentPackager packager = new DeploymentPackager(extractor.extractApplicationId(configFile), configFile.getParentFile());
-			packager.pack(configResponse);
+			File archive = packager.pack(configResponse);
+			LOGGER.info("Deployment archive created successfully");
+			String trackUrl = client.uploadContent(archive);
+			LOGGER.info("Deployment archive upload accepted by server. Status URL: {}", trackUrl);
 		} else {
 			throw new DeployerException("Failed to get response for configuration upload");
 		}
@@ -38,14 +46,9 @@ public class DeployerClient {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		var filePath = args[0];
-		File file = new File(filePath);
-		XmlDataExtractor extractor = new XmlDataExtractor();
-		var appId = extractor.extractApplicationId(file);
-		DeploymentPackager packager = new DeploymentPackager(appId, file.getParentFile());
-		String config = Files.readString(file.toPath());
-		File out = packager.pack(config);
-		System.out.println("Result file: " + out.getAbsolutePath());
+		DeployerClient client = new DeployerClient();
+		File file = new File(args[0]);
+		client.deploy(file, args[1]);
 	}
 
 

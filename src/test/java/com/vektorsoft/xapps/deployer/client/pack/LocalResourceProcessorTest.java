@@ -9,7 +9,8 @@
 package com.vektorsoft.xapps.deployer.client.pack;
 
 import com.vektorsoft.xapps.deployer.client.DeployerException;
-import com.vektorsoft.xapps.deployer.client.HashCalculator;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,6 +25,7 @@ import  static org.junit.Assert.*;
 public class LocalResourceProcessorTest {
 
 	private static final String RESOURCE_LOCAL_PATH = "src/test/resources/image.png";
+	private static final DigestUtils DIGEST = new DigestUtils(MessageDigestAlgorithms.SHA_1);
 
 	private File source;
 	private File target;
@@ -53,7 +55,7 @@ public class LocalResourceProcessorTest {
 
 		// verify that file is correctly copied
 		File origin = Path.of(source.getAbsolutePath(), "src", "test", "resources", "image.png").toFile();
-		String hash = HashCalculator.fileHash(origin);
+		String hash = DIGEST.digestAsHex(origin);
 		String[] parts = new String[]{
 				hash.substring(0, 2),
 				hash.substring(2, 4),
@@ -63,7 +65,7 @@ public class LocalResourceProcessorTest {
 		File output = Path.of(target.getAbsolutePath(), parts[0], parts[1], parts[2], hash).toFile();
 		assertTrue(output.exists());
 		// verify target hash
-		String targetHash = HashCalculator.fileHash(output);
+		String targetHash = DIGEST.digestAsHex(output);
 		assertEquals(hash, targetHash);
 	}
 

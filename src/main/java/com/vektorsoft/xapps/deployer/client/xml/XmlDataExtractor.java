@@ -39,10 +39,9 @@ public class XmlDataExtractor {
 	public String extractApplicationData(File dataFile) throws DeployerException {
 		try {
 			Document document = documentBuilderFactory.newDocumentBuilder().parse(dataFile);
-			Node node = (Node) xpath.evaluate("project/application", document, XPathConstants.NODE);
 
-			return convertNodeToString(node);
-		} catch (ParserConfigurationException | SAXException | IOException | TransformerException | XPathExpressionException ex) {
+			return convertNodeToString(document);
+		} catch (ParserConfigurationException | SAXException | IOException | TransformerException ex) {
 			throw new DeployerException((ex));
 		}
 

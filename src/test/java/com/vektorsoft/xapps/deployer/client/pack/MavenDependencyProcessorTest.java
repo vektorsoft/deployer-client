@@ -8,7 +8,8 @@
 
 package com.vektorsoft.xapps.deployer.client.pack;
 
-import com.vektorsoft.xapps.deployer.client.HashCalculator;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.codec.digest.MessageDigestAlgorithms;
 import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Element;
@@ -21,6 +22,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class MavenDependencyProcessorTest {
+
+	private static final DigestUtils DIGEST = new DigestUtils(MessageDigestAlgorithms.SHA_1);
 
 	private File source;
 	private File target;
@@ -48,7 +51,7 @@ public class MavenDependencyProcessorTest {
 		processor.process(element);
 
 		File origin = Path.of(MavenDependencyProcessor.getMavenlocalRepoPath(), "org", "mockito", "mockito-all", "1.9.5", "mockito-all-1.9.5.jar").toFile();
-		String hash = HashCalculator.fileHash(origin);
+		String hash = DIGEST.digestAsHex(origin);
 		String[] parts = new String[]{
 				hash.substring(0, 2),
 				hash.substring(2, 4),
@@ -58,7 +61,7 @@ public class MavenDependencyProcessorTest {
 		File output = Path.of(target.getAbsolutePath(), parts[0], parts[1], parts[2], hash).toFile();
 		assertTrue(output.exists());
 		// verify target hash
-		String targetHash = HashCalculator.fileHash(output);
+		String targetHash = DIGEST.digestAsHex(output);
 		assertEquals(hash, targetHash);
 
 	}
