@@ -43,6 +43,6 @@ public class XmlDataExtractorTest {
 		String out = extractor.extractApplicationId(configFile);
 
 		assertNotNull(out);
-		assertEquals("1234-4566-abcd-4322", out);
+		assertEquals("1234567", out);
 	}
 }

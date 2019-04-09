@@ -27,11 +27,12 @@ public class DeployerClient {
 		String applicationId = extractor.extractApplicationId(configFile);
 
 		SimpleHttpClient client = new SimpleHttpClient(serverUrl, applicationId);
-		String configResponse = client.uploadConfig(appXml);
-		if(configResponse != null) {
+		// get XML diff file between current configurations on client and server
+		String configDiff = client.uploadConfig(appXml);
+		if(configDiff != null) {
 			LOGGER.info("Configuration response received, starting packaging deployment archive");
 			DeploymentPackager packager = new DeploymentPackager(extractor.extractApplicationId(configFile), configFile.getParentFile());
-			File archive = packager.pack(configResponse);
+			File archive = packager.pack(configDiff);
 			LOGGER.info("Deployment archive created successfully");
 			String trackUrl = client.uploadContent(archive);
 			LOGGER.info("Deployment archive upload accepted by server. Status URL: {}", trackUrl);

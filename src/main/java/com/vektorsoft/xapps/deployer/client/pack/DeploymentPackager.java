@@ -25,6 +25,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
 
 /**
@@ -36,6 +37,7 @@ public class DeploymentPackager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeploymentPackager.class);
 
 	private static final String DEFAULT_CONFIG_FILE_NAME = "deployer-config.xml";
+	private static final String DEFAULT_DIFF_FILE_NAME = "diff.xml";
 
 	private final File deploymentDir;
 	private final File contentDir;
@@ -57,15 +59,16 @@ public class DeploymentPackager {
 
 	/**
 	 * Create deployment package based on specified configuration.
-	 * @param config configuration
+	 * @param configDiff configuration difference file
 	 * @return create deployment archive file
 	 * @throws DeployerException if an error occurs
 	 */
-	public File pack(String config) throws DeployerException {
+	public File pack(String configDiff) throws DeployerException {
 		LOGGER.info("Started packaging deployment package");
-		writeConfigFile(deploymentDir, config);
-		LOGGER.info("Wrote configuration file to {}", deploymentDir.getAbsolutePath());
-		writeContent(config);
+		writeDiffFile(deploymentDir, configDiff);
+		LOGGER.info("Wrote diff file to {}", deploymentDir.getAbsolutePath());
+		writeConfigFile(deploymentDir);
+		writeContent(configDiff);
 
 		File archiveFile = new File(deploymentDir.getParent(), deploymentDir.getName() + ".zip");
 		compressDeploymentDirectory(archiveFile);
@@ -80,18 +83,30 @@ public class DeploymentPackager {
 
 
 
-	private void writeConfigFile(File deployDir, String content) throws  DeployerException {
-
-		try (PrintWriter writer = new PrintWriter(new FileWriter(new File(deployDir, DEFAULT_CONFIG_FILE_NAME)))) {
+	private void writeDiffFile(File deployDir, String content) throws  DeployerException {
+		try (PrintWriter writer = new PrintWriter(new FileWriter(new File(deployDir, DEFAULT_DIFF_FILE_NAME)))) {
 			writer.print(content);
 		} catch(IOException ex) {
-			throw new DeployerException("Failed to create configuration file", ex);
+			throw new DeployerException("Failed to create diff file", ex);
 		}
+	}
+
+	private void writeConfigFile(File deployDir) throws DeployerException {
+		var configFilePath = Path.of(projectDir.getAbsolutePath(), DEFAULT_CONFIG_FILE_NAME);
+		var targetPath = Path.of(deployDir.getAbsolutePath(), DEFAULT_CONFIG_FILE_NAME);
+		try {
+			Files.copy(configFilePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+			LOGGER.info("Configuration file copied successfully");
+		} catch(IOException ex) {
+			LOGGER.error("Failed to copy configuration file", ex);
+		}
+
 	}
 
 	private void writeContent(String config) throws DeployerException {
 		Document doc = createXmlDocument(config);
 		iterateConfigNodes(doc, "icon", new LocalResourceProcessor(contentDir, projectDir));
+		iterateConfigNodes(doc, "splash-screen", new LocalResourceProcessor(contentDir, projectDir));
 		iterateConfigNodes(doc, "dependency", new DependencyProcessor(contentDir, projectDir));
 	}
 

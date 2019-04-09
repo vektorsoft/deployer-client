@@ -42,10 +42,10 @@ public class MavenDependencyProcessorTest {
 
 	@Test
 	public void testMavenDependencyProcessing() throws Exception {
-		when(element.getAttribute("groupId")).thenReturn("org.mockito");
-		when(element.getAttribute("artifactId")).thenReturn("mockito-all");
-		when(element.getAttribute("version")).thenReturn("1.9.5");
-		when(element.getAttribute("fileName")).thenReturn("mockito-all-1.9.5.jar");
+		when(element.getAttribute(MavenDependencyProcessor.MAVEN_GROUP_ID)).thenReturn("org.mockito");
+		when(element.getAttribute(MavenDependencyProcessor.MAVEN_ARTIFACT_ID)).thenReturn("mockito-all");
+		when(element.getAttribute(MavenDependencyProcessor.MAVEN_VERSION)).thenReturn("1.9.5");
+		when(element.getAttribute(MavenDependencyProcessor.MAVEN_FILE_NAME)).thenReturn("mockito-all-1.9.5.jar");
 
 		var processor = new MavenDependencyProcessor(target);
 		processor.process(element);

@@ -36,10 +36,11 @@ public class MavenDependencyProcessor implements ConfigElementProcessor {
 	private static final DigestUtils DIGEST = new DigestUtils(MessageDigestAlgorithms.SHA_1);
 
 	private static final String MAVEN_REPO_PROPERTY = "local.maven.repo";
-	private static final String MAVEN_GROUP_ID = "groupId";
-	private static final String MAVEN_ARTIFACT_ID = "artifactId";
-	private static final String MAVEN_VERSION = "version";
-	private static final String MAVEN_FILE_NAME = "fileName";
+	private static final String USER_HOME_DIR_PROPERTY = "user.home";
+	public static final String MAVEN_GROUP_ID = "group-id";
+	public static final String MAVEN_ARTIFACT_ID = "artifact-id";
+	public static final String MAVEN_VERSION = "version";
+	public static final String MAVEN_FILE_NAME = "file-name";
 
 	private static final String MAVEN_LOCAL_REPO;
 
@@ -47,7 +48,7 @@ public class MavenDependencyProcessor implements ConfigElementProcessor {
 		if(System.getProperty(MAVEN_REPO_PROPERTY) != null) {
 			MAVEN_LOCAL_REPO = System.getProperty(MAVEN_REPO_PROPERTY);
 		} else {
-			var userHomeDir = System.getProperty("user.home");
+			var userHomeDir = System.getProperty(USER_HOME_DIR_PROPERTY);
 			MAVEN_LOCAL_REPO = Path.of(userHomeDir, ".m2", "repository").toString();
 		}
 
@@ -76,7 +77,7 @@ public class MavenDependencyProcessor implements ConfigElementProcessor {
 					hash.substring(2, 4),
 					hash.substring(4, 6)
 			};
-			LOGGER.debug("Found maven dependnecy hash: {}", hash);
+			LOGGER.debug("Found maven dependency hash: {}", hash);
 
 			Path targetPath = Path.of(target.getAbsolutePath(), parts[0], parts[1], parts[2], hash);
 			targetPath.toFile().mkdirs();
